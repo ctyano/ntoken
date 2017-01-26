@@ -18,17 +18,25 @@ public class App
     public static void main( String[] args )
     {
         try {
-            // setup the key identifier that the corresponding public key
-            // has been registered in ZMS, and set the timeout to be 1 hour
-            String rsaPrivateKeyFile = args[0];
-            String NTokenFile = args[1];
-            String domainName = args[2];
-            String serviceName = args[3];
-            String authorizedServiceName = args[4];
+            String rsaPrivateKeyFile = null;
+            String domainName = null;
+            String serviceName = null;
+            String NTokenFile = null;
+            String authorizedServiceName = null;
             String keyId = "0";
             String authorizedServiceKeyId = "0";
             long tokenTimeout = 3600;
             String host = null;
+
+            // setup the key identifier that the corresponding public key
+            // has been registered in ZMS, and set the timeout to be 1 hour
+            rsaPrivateKeyFile = args[0];
+            domainName = args[1];
+            serviceName = args[2];
+            if (args.length > 3) {
+                NTokenFile = args[3];
+                authorizedServiceName = args[4];
+            }
 
             // we're going to extract our private key from a given file
             File rsaPrivateKey = new File(rsaPrivateKeyFile);
@@ -39,14 +47,16 @@ public class App
             token.sign(privateKey);
             System.out.println( "Service-Token: "+token.getSignedToken() );
             
-            String ntoken = new String(Files.readAllBytes(Paths.get(NTokenFile))).replaceAll("\n", "");;
-            PrincipalToken userToken = new PrincipalToken(ntoken);
-            System.out.println( "User-Token: "+NTokenFile );
-            System.out.println( "User-Token: "+ntoken );
-            System.out.println( "User-Token: "+userToken.getSignedToken() );
-            
-            userToken.signForAuthorizedService(authorizedServiceName, authorizedServiceKeyId, privateKey);
-            System.out.println( "Signed User-Token: "+userToken.getSignedToken() );
+            if (NTokenFile != null && authorizedServiceName != null) {
+                String ntoken = new String(Files.readAllBytes(Paths.get(NTokenFile))).replaceAll("\n", "");;
+                PrincipalToken userToken = new PrincipalToken(ntoken);
+                System.out.println( "User-Token: "+NTokenFile );
+                System.out.println( "User-Token: "+ntoken );
+                System.out.println( "User-Token: "+userToken.getSignedToken() );
+                
+                userToken.signForAuthorizedService(authorizedServiceName, authorizedServiceKeyId, privateKey);
+                System.out.println( "Signed User-Token: "+userToken.getSignedToken() );
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
